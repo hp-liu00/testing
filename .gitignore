@@ -1,0 +1,17 @@
+.claude/settings.local.json
+.DS_Store
+
+# Secrets and local-only files
+.env
+.env.*
+*.pem
+*.key
+*.p12
+id_rsa*
+
+# Tooling / build output
+node_modules/
+_site/
+*.log
+.vscode/
+.idea/
