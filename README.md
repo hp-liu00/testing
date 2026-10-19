@@ -76,7 +76,7 @@ CLAUDE.md                     Notes for Claude Code
 GitHub Actions (`.github/workflows/pages.yml`):
 
 - **check** (every push, pull request and manual run): parses `index.html` for HTML structure errors and scans the repository history for secrets with Gitleaks.
-- **deploy** (pushes to `main` only, after `check` passes): publishes only `index.html` to GitHub Pages.
+- **deploy** (pushes and manual runs on `main`, after `check` passes): publishes only `index.html` to GitHub Pages.
 
 ## License
 
