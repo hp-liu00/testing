@@ -75,10 +75,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build site (index.html only)
+      - name: Build site (index.html plus its browser scripts)
         run: |
-          mkdir _site
+          mkdir -p _site/.claude/hooks
           cp index.html _site/
+          cp .claude/hooks/security-briefing.js .claude/hooks/whatsapp-chat.js _site/.claude/hooks/
 
       - uses: actions/configure-pages@v5
 

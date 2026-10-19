@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>IT PMO Kanban</title>
+<title>IT PMO Delivery Board v2</title>
 <style>
   /* ==========================================================
      Design tokens
@@ -238,7 +238,7 @@
      Toasts
      ========================================================== */
   .toast-region {
-    position: fixed; right: var(--sp-4); bottom: var(--sp-4); z-index: 20;
+    position: fixed; right: var(--sp-4); bottom: 88px; z-index: 20;
     display: flex; flex-direction: column; gap: var(--sp-2); max-width: calc(100vw - 2 * var(--sp-4));
   }
   .toast {
@@ -249,6 +249,171 @@
   .toast-success { border-left-color: #4cc38a; }
   .toast-warning { border-left-color: #ffb020; }
   .toast strong { display: block; margin-bottom: 2px; }
+
+  .whatsapp-chat {
+    position: fixed; right: var(--sp-5); bottom: var(--sp-5); z-index: 30;
+    display: inline-flex; align-items: center; gap: var(--sp-2);
+    min-height: 52px; padding: 0 var(--sp-4); border-radius: 999px;
+    background: #168a56; color: #fff; box-shadow: var(--shadow-lg);
+    text-decoration: none; font-weight: 700;
+  }
+  .whatsapp-chat:hover { background: #116f45; }
+  .whatsapp-chat:focus-visible { outline: none; box-shadow: var(--focus), var(--shadow-lg); }
+  .whatsapp-chat svg { width: 24px; height: 24px; flex: none; }
+
+  /* ==========================================================
+     Deadline-first dashboard
+     ========================================================== */
+  :root {
+    --blue-900: #172a46;
+    --blue-800: #233a59;
+    --blue-700: #c8102e;
+    --blue-500: #e3273e;
+    --blue-100: #f9e8eb;
+    --blue-50: #f7f5f3;
+    --text: #23272d;
+    --text-muted: #59616b;
+    --border: #d9dadd;
+    --surface: #ffffff;
+    --bg: #f2f2f3;
+    --warning: #8b4b00;
+    --font: "Avenir Next", "Segoe UI", sans-serif;
+    --shadow: 0 2px 6px rgba(23, 42, 70, 0.08);
+    --shadow-lg: 0 16px 40px rgba(23, 42, 70, 0.24);
+  }
+  body { font-size: 14px; }
+  .app-header {
+    background: #fff;
+    color: #172a46;
+    border-bottom: 4px solid #c8102e;
+    padding-top: 20px;
+    padding-bottom: 18px;
+  }
+  .wordmark { align-items: center; gap: 14px; }
+  .wordmark h1 {
+    font-size: 25px;
+    letter-spacing: 0;
+    padding-right: 14px;
+    color: #c8102e;
+    border-right: 1px solid #d9dadd;
+  }
+  .wordmark span { color: #59616b; }
+  .summary { margin-top: 18px; gap: 8px; }
+  .summary li { background: #f2f2f3; color: #233a59; border-color: #d9dadd; border-radius: 4px; padding: 5px 11px; }
+  .summary .summary-overdue { background: #f9e8eb; color: #a20d25; border-color: #e9b9c1; }
+  .demo-note { color: #59616b; }
+  .filters { padding-top: 14px; padding-bottom: 14px; align-items: flex-end; }
+  .filters h2 { color: #233a59; }
+  .field input, .field select, .field textarea { min-height: 38px; }
+  .btn { min-height: 38px; transition: background-color .16s ease, color .16s ease, border-color .16s ease; }
+  .btn-primary { background: #c8102e; border-color: #c8102e; }
+  .btn-primary:hover { background: #a20d25; }
+  .app-header .btn-light { color: #fff; background: #c8102e; border-color: #c8102e; }
+  .app-header .btn-light:hover { background: #a20d25; }
+  main { padding-top: 18px; }
+  .deadline-panel {
+    margin-bottom: 18px;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-top: 3px solid #c8102e;
+    border-radius: 6px;
+    box-shadow: var(--shadow);
+  }
+  .deadline-heading {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+    padding: 14px 16px 10px;
+  }
+  .deadline-heading h2 { font-size: 16px; color: #172a46; }
+  .deadline-heading p { font-size: 12px; color: var(--text-muted); }
+  .deadline-content { display: grid; grid-template-columns: minmax(250px, .9fr) minmax(0, 2fr); }
+  .deadline-filters {
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px;
+    padding: 0 14px 14px 16px; border-right: 1px solid var(--border);
+  }
+  .deadline-filter {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    min-height: 46px; padding: 7px 10px; text-align: left;
+    background: #f5f7f5; color: #33443d; border: 1px solid #dce4dd;
+    border-radius: 4px; cursor: pointer; font-weight: 600;
+  }
+  .deadline-filter strong { font-size: 16px; font-variant-numeric: tabular-nums; }
+  .deadline-filter[aria-pressed="true"] { background: #f9e8eb; border-color: #c8102e; box-shadow: inset 3px 0 #c8102e; }
+  .deadline-filter[data-deadline-filter="overdue"] strong { color: #b3332a; }
+  .deadline-list { display: flex; flex-direction: column; min-width: 0; padding: 0 16px 12px; }
+  .deadline-list-heading {
+    display: flex; justify-content: space-between; gap: 12px; padding: 0 0 5px;
+    color: var(--text-muted); font-size: 11px; font-weight: 700; text-transform: uppercase;
+  }
+  .deadline-item {
+    display: grid; grid-template-columns: 76px minmax(0, 1fr) auto; align-items: center; gap: 10px;
+    width: 100%; min-height: 45px; padding: 6px 2px; text-align: left;
+    color: var(--text); background: transparent; border: 0; border-top: 1px solid #e8ede9;
+    cursor: pointer;
+  }
+  .deadline-item:hover .deadline-task { color: #a20d25; text-decoration: underline; }
+  .deadline-date { font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .deadline-date.is-overdue { color: #b3332a; }
+  .deadline-task { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; font-weight: 600; }
+  .deadline-assignee { color: var(--text-muted); font-size: 11px; white-space: nowrap; }
+  .deadline-empty { padding: 12px 0 4px; color: var(--text-muted); font-size: 13px; }
+  .column { background: #f4f4f5; }
+  .column-header { padding: 12px 13px 9px; }
+  .column-header h2 { letter-spacing: .02em; }
+  .count-badge { background: #172a46; border-radius: 4px; padding: 2px 8px; }
+  .card { border-radius: 5px; padding: 12px; gap: 9px; }
+  .card h3 { color: #172a46; }
+  .card.deadline-target { outline: 3px solid #d0a900; outline-offset: 2px; }
+  .deadline-line {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    padding: 7px 9px; background: #f2f2f3; border-radius: 3px;
+    font-size: 12px; font-variant-numeric: tabular-nums;
+  }
+  .deadline-line strong { color: #233a59; }
+  .deadline-line.is-overdue { color: #9d2925; background: #fff0ed; }
+  .deadline-line.is-overdue strong { color: #9d2925; }
+  .deadline-line.is-soon { background: #fff5dd; color: #754600; }
+  .deadline-line.is-soon strong { color: #754600; }
+  .pill { border-radius: 3px; }
+  .icon-btn { width: 40px; height: 40px; }
+  .card-actions .btn-sm { min-height: 34px; }
+  .column { transition: background-color .15s ease, border-color .15s ease; }
+  .view-switch {
+    display: flex; gap: 3px; width: fit-content; margin: 0 20px 0 auto; padding: 3px;
+    background: #e8e8ea; border: 1px solid #d9dadd; border-radius: 5px;
+  }
+  .view-tab {
+    min-height: 38px; padding: 7px 15px; background: transparent; color: #39434e;
+    border: 1px solid transparent; border-radius: 3px; cursor: pointer; font-weight: 650;
+  }
+  .view-tab[aria-pressed="true"] { color: #fff; background: #172a46; }
+  .chart-view { padding: 16px 20px 28px; }
+  .chart-view[hidden] { display: none; }
+  .chart-intro { margin-bottom: 14px; }
+  .chart-intro h2 { color: #172a46; font-size: 18px; }
+  .chart-intro p { color: var(--text-muted); font-size: 13px; margin-top: 3px; }
+  .chart-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+  .chart-section { min-width: 0; padding: 14px 0; border-top: 2px solid #172a46; }
+  .chart-section h3 { margin-bottom: 14px; color: #233a59; font-size: 14px; }
+  .bar-chart { display: flex; flex-direction: column; gap: 14px; }
+  .bar-row { display: grid; grid-template-columns: minmax(85px, 115px) minmax(0, 1fr) 36px; gap: 10px; align-items: center; }
+  .bar-label { color: #39434e; font-size: 12px; font-weight: 600; }
+  .bar-track { height: 16px; overflow: hidden; background: #ececef; border-radius: 2px; }
+  .bar-fill { display: block; height: 100%; min-width: 0; background: #c8102e; border-radius: 2px; transition: width .2s ease; }
+  .bar-fill.is-safe { background: #233a59; }
+  .bar-fill.is-warning { background: #c77d00; }
+  .bar-fill.is-complete { background: #527760; }
+  .bar-count { text-align: right; color: #172a46; font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .chart-empty { color: var(--text-muted); font-size: 13px; }
+  .chart-table { width: 100%; margin-top: 14px; border-collapse: collapse; font-size: 12px; }
+  .chart-table caption { text-align: left; margin-bottom: 6px; color: var(--text-muted); }
+  .chart-table th, .chart-table td { padding: 6px 8px; border-top: 1px solid #e1e1e3; text-align: right; }
+  .chart-table th:first-child, .chart-table td:first-child { text-align: left; }
+  .chart-table th { color: #39434e; }
+  @media (max-width: 900px) {
+    .deadline-content { grid-template-columns: 1fr; }
+    .deadline-filters { border-right: 0; border-bottom: 1px solid var(--border); padding-right: 16px; }
+    .deadline-list { padding-top: 12px; }
+  }
 
   /* ==========================================================
      Responsive: stack below 768px
@@ -261,6 +426,13 @@
     .field input, .field select { min-width: 0; }
     .filters .filter-count { margin-left: 0; }
     .task-form { grid-template-columns: 1fr; }
+    .deadline-heading { align-items: flex-start; flex-direction: column; gap: 3px; }
+    .deadline-item { grid-template-columns: 70px minmax(0, 1fr); }
+    .deadline-assignee { grid-column: 2; }
+    .view-switch { margin-right: 16px; }
+    .chart-view { padding-right: 16px; padding-left: 16px; }
+    .chart-grid { grid-template-columns: 1fr; gap: 12px; }
+    .bar-row { grid-template-columns: minmax(78px, 100px) minmax(0, 1fr) 30px; gap: 7px; }
   }
   @media (prefers-reduced-motion: reduce) {
     .column { transition: none; }
@@ -309,11 +481,49 @@
   <p class="filter-count" id="filter-count" aria-live="polite"></p>
 </section>
 
+<nav class="view-switch" aria-label="Board view">
+  <button type="button" class="view-tab" data-view="board" aria-pressed="true">Board</button>
+  <button type="button" class="view-tab" data-view="charts" aria-pressed="false">Charts</button>
+</nav>
+
 <!-- ============================================================
      Kanban board (columns are built by JS from STATUSES)
      ============================================================ -->
 <main>
+  <section class="deadline-panel" aria-labelledby="deadline-heading">
+    <div class="deadline-heading">
+      <h2 id="deadline-heading">Deadline radar</h2>
+      <p>Upcoming work, ordered by due date</p>
+    </div>
+    <div class="deadline-content">
+      <div class="deadline-filters" id="deadline-filters" role="group" aria-label="Filter tasks by deadline">
+        <button type="button" class="deadline-filter" data-deadline-filter="all" aria-pressed="true"><span>Open</span><strong id="deadline-count-all">0</strong></button>
+        <button type="button" class="deadline-filter" data-deadline-filter="overdue" aria-pressed="false"><span>Overdue</span><strong id="deadline-count-overdue">0</strong></button>
+        <button type="button" class="deadline-filter" data-deadline-filter="7" aria-pressed="false"><span>Next 7 days</span><strong id="deadline-count-7">0</strong></button>
+        <button type="button" class="deadline-filter" data-deadline-filter="30" aria-pressed="false"><span>Next 30 days</span><strong id="deadline-count-30">0</strong></button>
+      </div>
+      <div class="deadline-list" id="deadline-list" aria-live="polite"></div>
+    </div>
+  </section>
   <section class="board" id="board" aria-label="Kanban board"></section>
+  <section class="chart-view" id="chart-view" aria-labelledby="chart-title" hidden>
+    <div class="chart-intro">
+      <h2 id="chart-title">Delivery overview</h2>
+      <p>Open tasks by deadline and work status</p>
+    </div>
+    <div class="chart-grid">
+      <section class="chart-section" aria-labelledby="deadline-chart-title">
+        <h3 id="deadline-chart-title">Deadline horizon</h3>
+        <div class="bar-chart" id="deadline-chart" role="img" aria-label="Open tasks grouped by deadline"></div>
+        <table class="chart-table" id="deadline-chart-table"></table>
+      </section>
+      <section class="chart-section" aria-labelledby="status-chart-title">
+        <h3 id="status-chart-title">Work by status</h3>
+        <div class="bar-chart" id="status-chart" role="img" aria-label="Tasks grouped by status"></div>
+        <table class="chart-table" id="status-chart-table"></table>
+      </section>
+    </div>
+  </section>
 </main>
 
 <!-- ============================================================
@@ -379,6 +589,14 @@
 <!-- Toast region (announced politely to screen readers) -->
 <div class="toast-region" id="toast-region" aria-live="polite" aria-atomic="false"></div>
 
+<a class="whatsapp-chat" id="whatsapp-chat" href="https://wa.me/6512345678" target="_blank" rel="noopener noreferrer" aria-label="Chat with us on WhatsApp" title="Chat with us on WhatsApp">
+  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <path d="M20 11.5a8 8 0 0 1-11.8 7L4 20l1.5-4.1A8 8 0 1 1 20 11.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+    <path d="M9 9.2c.2-.5.5-.5.8-.5h.5c.2 0 .4.1.5.4l.7 1.6c.1.2.1.4-.1.6l-.5.6c-.2.2-.2.4 0 .6.5.8 1.2 1.4 2 1.8.2.1.4.1.6-.1l.7-.8c.2-.2.4-.2.6-.1l1.5.7c.3.1.4.3.4.5 0 .4-.2 1.1-.7 1.5-.5.4-1.1.6-1.8.5-1-.1-2.2-.7-3.4-1.7-1-.9-1.8-2-2-2.9-.2-.8-.1-1.5.2-2.2Z" fill="currentColor" />
+  </svg>
+  <span>WhatsApp</span>
+</a>
+
 <!--
   FormSubmit configuration
   ------------------------
@@ -418,7 +636,7 @@ const TOAST_MS = 4500;
    ============================================================ */
 const state = {
   tasks: [],
-  filters: { project: "", assignee: "", priority: "" },
+  filters: { project: "", assignee: "", priority: "", deadline: "all" },
   nextId: 1,
   ui: { pendingDeleteId: null, openMoveId: null, draggingId: null }
 };
@@ -459,6 +677,22 @@ function daysFromToday(offset) {
 
 function isOverdue(task) {
   return task.status !== "Done" && task.dueDate < todayISO();
+}
+
+function daysUntilDue(task) {
+  const [year, month, day] = task.dueDate.split("-").map(Number);
+  const due = Date.UTC(year, month - 1, day);
+  const [todayYear, todayMonth, todayDay] = todayISO().split("-").map(Number);
+  const today = Date.UTC(todayYear, todayMonth - 1, todayDay);
+  return Math.round((due - today) / 86400000);
+}
+
+function deadlineLabel(task) {
+  if (task.status === "Done") return "Completed";
+  const days = daysUntilDue(task);
+  if (days < 0) return "" + Math.abs(days) + " " + (days === -1 ? "day" : "days") + " overdue";
+  if (days === 0) return "Due today";
+  return "Due in " + days + " " + (days === 1 ? "day" : "days");
 }
 
 function formatDate(iso) {
@@ -502,7 +736,10 @@ function applyFilters() {
   return state.tasks.filter(t =>
     (!f.project || t.project === f.project) &&
     (!f.priority || t.priority === f.priority) &&
-    (!needle || t.assignee.toLowerCase().includes(needle))
+    (!needle || t.assignee.toLowerCase().includes(needle)) &&
+    (f.deadline === "all" || (f.deadline === "overdue" && isOverdue(t)) ||
+      (f.deadline === "7" && t.status !== "Done" && daysUntilDue(t) >= 0 && daysUntilDue(t) <= 7) ||
+      (f.deadline === "30" && t.status !== "Done" && daysUntilDue(t) >= 0 && daysUntilDue(t) <= 30))
   );
 }
 
@@ -519,6 +756,83 @@ function renderSummary() {
     .concat(STATUSES.map(s => '<li>' + escapeHtml(s) + ' <strong>' + counts[s] + '</strong></li>'))
     .concat(['<li class="summary-overdue">Overdue <strong>' + overdue + '</strong></li>']);
   document.getElementById("summary").innerHTML = items.join("");
+}
+
+function renderDeadlineRadar() {
+  const needle = state.filters.assignee.trim().toLowerCase();
+  const matching = state.tasks.filter(t =>
+    (!state.filters.project || t.project === state.filters.project) &&
+    (!state.filters.priority || t.priority === state.filters.priority) &&
+    (!needle || t.assignee.toLowerCase().includes(needle))
+  );
+  const open = matching.filter(t => t.status !== "Done");
+  const overdue = open.filter(isOverdue);
+  const next7 = open.filter(t => daysUntilDue(t) >= 0 && daysUntilDue(t) <= 7);
+  const next30 = open.filter(t => daysUntilDue(t) >= 0 && daysUntilDue(t) <= 30);
+  document.getElementById("deadline-count-all").textContent = open.length;
+  document.getElementById("deadline-count-overdue").textContent = overdue.length;
+  document.getElementById("deadline-count-7").textContent = next7.length;
+  document.getElementById("deadline-count-30").textContent = next30.length;
+  document.querySelectorAll("[data-deadline-filter]").forEach(button => {
+    button.setAttribute("aria-pressed", button.dataset.deadlineFilter === state.filters.deadline ? "true" : "false");
+  });
+
+  const selected = applyFilters().filter(t => t.status !== "Done")
+    .sort((a, b) => a.dueDate.localeCompare(b.dueDate));
+  const items = selected.slice(0, 5);
+  document.getElementById("deadline-list").innerHTML =
+    '<div class="deadline-list-heading"><span>Task</span><span>Due / owner</span></div>' +
+    (items.length ? items.map(task => {
+      const id = escapeHtml(task.id);
+      const days = daysUntilDue(task);
+      return '<button type="button" class="deadline-item" data-focus-task="' + id + '" aria-label="Go to ' + escapeHtml(task.title) + ', ' + escapeHtml(deadlineLabel(task)) + '">' +
+        '<span class="deadline-date' + (days < 0 ? ' is-overdue' : '') + '">' + escapeHtml(formatDate(task.dueDate)) + '</span>' +
+        '<span class="deadline-task">' + escapeHtml(task.title) + '</span>' +
+        '<span class="deadline-assignee">' + escapeHtml(task.assignee) + ' · ' + escapeHtml(deadlineLabel(task)) + '</span>' +
+      '</button>';
+    }).join("") : '<p class="deadline-empty">No open deadlines in this view.</p>');
+}
+
+function renderBarChart(targetId, tableId, rows, caption, emptyMessage) {
+  const target = document.getElementById(targetId);
+  const table = document.getElementById(tableId);
+  const maximum = Math.max(1, ...rows.map(row => row.value));
+  target.innerHTML = rows.some(row => row.value > 0) ? rows.map(row => {
+    const width = row.value ? Math.max(4, (row.value / maximum) * 100) : 0;
+    return '<div class="bar-row"><span class="bar-label">' + escapeHtml(row.label) + '</span>' +
+      '<span class="bar-track"><span class="bar-fill ' + escapeHtml(row.className || "") + '" style="width:' + width + '%"></span></span>' +
+      '<strong class="bar-count">' + row.value + '</strong></div>';
+  }).join("") : '<p class="chart-empty">' + escapeHtml(emptyMessage) + '</p>';
+  target.setAttribute("aria-label", caption + ": " + rows.map(row => row.label + " " + row.value).join(", "));
+  table.innerHTML = '<caption>' + escapeHtml(caption) + '</caption><thead><tr><th scope="col">Group</th><th scope="col">Tasks</th></tr></thead><tbody>' +
+    rows.map(row => '<tr><th scope="row">' + escapeHtml(row.label) + '</th><td>' + row.value + '</td></tr>').join("") + '</tbody>';
+}
+
+function renderCharts() {
+  const needle = state.filters.assignee.trim().toLowerCase();
+  const matching = state.tasks.filter(t =>
+    (!state.filters.project || t.project === state.filters.project) &&
+    (!state.filters.priority || t.priority === state.filters.priority) &&
+    (!needle || t.assignee.toLowerCase().includes(needle))
+  );
+  const open = matching.filter(task => task.status !== "Done");
+  const overdue = open.filter(isOverdue).length;
+  const due7 = open.filter(task => !isOverdue(task) && daysUntilDue(task) <= 7).length;
+  const due30 = open.filter(task => daysUntilDue(task) > 7 && daysUntilDue(task) <= 30).length;
+  const later = open.filter(task => daysUntilDue(task) > 30).length;
+  renderBarChart("deadline-chart", "deadline-chart-table", [
+    { label: "Overdue", value: overdue, className: "is-warning" },
+    { label: "Next 7 days", value: due7 },
+    { label: "8–30 days", value: due30, className: "is-safe" },
+    { label: "Later", value: later, className: "is-safe" }
+  ], "Open tasks by deadline horizon", "No open tasks match these filters.");
+
+  const statusRows = STATUSES.map(status => ({
+    label: status,
+    value: matching.filter(task => task.status === status).length,
+    className: status === "Done" ? "is-complete" : status === "Blocked" ? "is-warning" : "is-safe"
+  }));
+  renderBarChart("status-chart", "status-chart-table", statusRows, "Tasks by status", "No tasks match these filters.");
 }
 
 function renderCard(task) {
@@ -556,12 +870,13 @@ function renderCard(task) {
       '<div class="card-top">' +
         '<span class="task-id">' + id + '</span>' +
         '<span class="tags">' +
-          (overdue ? '<span class="pill overdue">⚠ Overdue</span>' : '') +
+          (overdue ? '<span class="pill overdue">Overdue</span>' : '') +
           '<span class="pill pill-' + escapeHtml(task.priority) + '">' + escapeHtml(task.priority) + '</span>' +
         '</span>' +
       '</div>' +
       '<h3>' + escapeHtml(task.title) + '</h3>' +
       (task.description ? '<p class="card-desc">' + escapeHtml(task.description) + '</p>' : '') +
+      '<div class="deadline-line' + (overdue ? ' is-overdue' : daysUntilDue(task) <= 7 && task.status !== "Done" ? ' is-soon' : '') + '"><span>Due ' + escapeHtml(formatDate(task.dueDate)) + '</span><strong>' + escapeHtml(deadlineLabel(task)) + '</strong></div>' +
       '<dl class="meta">' +
         '<dt>Project</dt><dd>' + escapeHtml(task.project) + '</dd>' +
         '<dt>Assignee</dt><dd>' + escapeHtml(task.assignee) + '</dd>' +
@@ -598,6 +913,8 @@ function renderBoard() {
     filtered ? "Showing " + visible.length + " of " + state.tasks.length + " tasks" : "";
 
   renderSummary();
+  renderDeadlineRadar();
+  renderCharts();
 }
 
 /** Re-render, then restore focus to a control inside a card (keeps keyboard flow intact). */
@@ -914,9 +1231,39 @@ function handleFilterInput(event) {
 }
 
 function clearFilters() {
-  state.filters = { project: "", assignee: "", priority: "" };
+  state.filters = { project: "", assignee: "", priority: "", deadline: "all" };
   document.querySelectorAll("[data-filter]").forEach(el => { el.value = ""; });
   renderBoard();
+}
+
+function handleDeadlineFilter(event) {
+  const button = event.target.closest("[data-deadline-filter]");
+  if (!button) return;
+  state.filters.deadline = button.dataset.deadlineFilter;
+  renderBoard();
+}
+
+function handleDeadlineJump(event) {
+  const button = event.target.closest("[data-focus-task]");
+  if (!button) return;
+  const card = document.querySelector('.card[data-id="' + button.dataset.focusTask + '"]');
+  if (!card) return;
+  document.querySelectorAll(".card.deadline-target").forEach(item => item.classList.remove("deadline-target"));
+  card.classList.add("deadline-target");
+  card.tabIndex = -1;
+  card.scrollIntoView({ behavior: "smooth", block: "center" });
+  card.focus({ preventScroll: true });
+}
+
+function handleViewSwitch(event) {
+  const button = event.target.closest("[data-view]");
+  if (!button) return;
+  const showCharts = button.dataset.view === "charts";
+  document.getElementById("board").hidden = showCharts;
+  document.getElementById("chart-view").hidden = !showCharts;
+  document.querySelectorAll("[data-view]").forEach(tab => {
+    tab.setAttribute("aria-pressed", tab === button ? "true" : "false");
+  });
 }
 
 /* ============================================================
@@ -948,6 +1295,9 @@ function init() {
 
   document.querySelector(".filters").addEventListener("input", handleFilterInput);
   document.getElementById("clear-filters-btn").addEventListener("click", clearFilters);
+  document.getElementById("deadline-filters").addEventListener("click", handleDeadlineFilter);
+  document.getElementById("deadline-list").addEventListener("click", handleDeadlineJump);
+  document.querySelector(".view-switch").addEventListener("click", handleViewSwitch);
 
   openAddBtn.addEventListener("click", openModal);
   document.getElementById("close-modal-btn").addEventListener("click", closeModal);
@@ -960,5 +1310,7 @@ function init() {
 
 init();
 </script>
+<script src=".claude/hooks/security-briefing.js"></script>
+<script src=".claude/hooks/whatsapp-chat.js"></script>
 </body>
 </html>
