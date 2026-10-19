@@ -11,6 +11,8 @@ A lightweight, single-file Kanban board for tracking IT project-delivery tasks â
 
 **Live demo:** https://hp-liu00.github.io/testing/
 
+[![IT PMO Kanban board with Backlog, In Progress, Blocked and Done columns of seeded demo tasks](docs/screenshot.png)](https://hp-liu00.github.io/testing/)
+
 ## Features
 
 - **Four-column board** â€” Backlog, In Progress, Blocked, Done.
@@ -67,6 +69,7 @@ FormSubmit is the app's only outbound network call; there are no analytics or th
 
 ```
 index.html                    The whole app (inline CSS + JS)
+docs/screenshot.png           README screenshot (captured with Playwright MCP)
 CLAUDE.md                     Notes for Claude Code
 .github/workflows/pages.yml   CI + GitHub Pages deployment
 ```

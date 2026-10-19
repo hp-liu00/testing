@@ -15,3 +15,5 @@ _site/
 *.log
 .vscode/
 .idea/
+.playwright-mcp/
+.playwright-mcp/
